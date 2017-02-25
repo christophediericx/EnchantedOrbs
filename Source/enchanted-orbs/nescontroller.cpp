@@ -39,28 +39,36 @@ byte read_nes_controller(controller c)
 
   pulsePin(nes_latch_pin);
  
-  if (digitalRead(nes_data_pin) == LOW) bitClear(result, NES_A_BUTTON);
+  if (digitalRead(nes_data_pin) == LOW) 
+    bitClear(result, NES_A_BUTTON);
 
   pulsePin(nes_clock_pin);
-  if (digitalRead(nes_data_pin) == LOW) bitClear(result, NES_B_BUTTON);
+  if (digitalRead(nes_data_pin) == LOW) 
+    bitClear(result, NES_B_BUTTON);
   
   pulsePin(nes_clock_pin);
-  if (digitalRead(nes_data_pin) == LOW) bitClear(result, NES_SELECT_BUTTON);
+  if (digitalRead(nes_data_pin) == LOW) 
+    bitClear(result, NES_SELECT_BUTTON);
 
   pulsePin(nes_clock_pin);
-  if (digitalRead(nes_data_pin) == LOW) bitClear(result, NES_START_BUTTON);
+  if (digitalRead(nes_data_pin) == LOW) 
+    bitClear(result, NES_START_BUTTON);
 
   pulsePin(nes_clock_pin);
-  if (digitalRead(nes_data_pin) == LOW) bitClear(result, NES_UP_BUTTON);
+  if (digitalRead(nes_data_pin) == LOW) 
+    bitClear(result, NES_UP_BUTTON);
     
   pulsePin(nes_clock_pin);
-  if (digitalRead(nes_data_pin) == LOW) bitClear(result, NES_DOWN_BUTTON);
+  if (digitalRead(nes_data_pin) == LOW) 
+    bitClear(result, NES_DOWN_BUTTON);
 
   pulsePin(nes_clock_pin);
-  if (digitalRead(nes_data_pin) == LOW) bitClear(result, NES_LEFT_BUTTON);  
+  if (digitalRead(nes_data_pin) == LOW) 
+    bitClear(result, NES_LEFT_BUTTON);  
     
   pulsePin(nes_clock_pin);
-  if (digitalRead(nes_data_pin) == LOW) bitClear(result, NES_RIGHT_BUTTON);
+  if (digitalRead(nes_data_pin) == LOW) 
+    bitClear(result, NES_RIGHT_BUTTON);
 
   return ~result;
 }
