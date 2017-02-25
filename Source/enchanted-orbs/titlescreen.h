@@ -3,8 +3,7 @@
 
 void initialize_titlescreen(void);
 mode run_titlescreen(void);
-
-bool titlescreen_audio_callback(void);
+bool titlescreen_audiocallback(void);
 
 const static PROGMEM unsigned char titlescreen_pic[] = 
 {

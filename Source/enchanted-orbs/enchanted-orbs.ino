@@ -1,6 +1,7 @@
 #include <SPI.h>
 #include <GD.h>
 
+#include "nescontroller.h"
 #include "screenmode.h"
 #include "gamescreen.h"
 #include "titlescreen.h"
@@ -14,14 +15,15 @@ void switch_mode(mode mode)
   is_initialized = false;
 }
 
-void setup() 
+void setup(void) 
 {
   Serial.begin(9600);
   GD.begin();
+  initialize_nes_controllers();
   switch_mode(title_screen);
 }
 
-void loop() 
+void loop(void) 
 {
   void (*screen_init)(void);
   mode (*screen_run)(void);

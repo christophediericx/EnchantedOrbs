@@ -10,7 +10,7 @@ struct voice
   float a;
 } voices[48];
 
-void load()
+void load(void)
 {
   byte v;
   unsigned int gg = 0;
