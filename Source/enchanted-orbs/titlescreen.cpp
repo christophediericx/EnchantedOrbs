@@ -22,8 +22,8 @@ mode run_titlescreen(void)
 }
 
 uint8_t frame_counter;
-const uint16_t offset1 = 2067;
-const uint16_t offset2 = 1619;
+const uint16_t offset1 = 2195;
+const uint16_t offset2 = 1719;
   
 void pulse_press_start(void) 
 {
