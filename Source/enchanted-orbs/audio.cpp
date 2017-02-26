@@ -88,7 +88,6 @@ void play_melody(const uint8_t* melody, uint16_t len, bool (*audio_callback)(voi
 void sawtooth_wave(int freq)
 {
   uint16_t f = pgm_read_word(midi_freq + freq);
-  Serial.println(freq + '--' + f);
   GD.voice(0, SINE, f,     100,    100);
   GD.voice(1, SINE, 2 * f, 100/2,  100/2);
   GD.voice(2, SINE, 3 * f, 100/3,  100/3);

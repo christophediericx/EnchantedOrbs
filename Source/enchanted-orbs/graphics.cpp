@@ -44,6 +44,15 @@ void load_background(mode screen_mode)
       size_ram_pal = sizeof(titlescreen_pal);
       break;
     }
+    case game_screen:
+    {
+      ram_pic = gamescreen_pic;
+      ram_chr = gamescreen_chr;
+      ram_pal = gamescreen_pal;
+      size_ram_chr = sizeof(gamescreen_chr);
+      size_ram_pal = sizeof(gamescreen_pal);
+      break;      
+    }
   }
   
   for (byte y = 0; y < 38; y++)

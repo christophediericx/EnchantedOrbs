@@ -10,7 +10,6 @@
 
 uint8_t frame_counter;
 uint8_t current_midifreq;
-uint8_t midi_freq_counter;
 const uint16_t offset1 = 2195;
 const uint16_t offset2 = 1719;
 
