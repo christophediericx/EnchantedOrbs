@@ -4,9 +4,9 @@
 
 #include "graphics.h"
 
-void fade_to_black(void)
+void fade_to_black(bool (*graphics_callback)(void))
 {
-  for (byte i = 0; i < 16; i++) 
+  for (byte i = 0; i < 32; i++) 
   {
     for (int j = RAM_PAL; j < (RAM_PAL + 2048); j += 2) 
     {
@@ -20,6 +20,7 @@ void fade_to_black(void)
       pal = (r << 10) | (g << 5) | b;
       GD.wr16(j, pal);
     }
+    graphics_callback();    
     GD.waitvblank();
   }  
 }

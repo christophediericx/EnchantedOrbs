@@ -4,5 +4,6 @@
 void initialize_titlescreen(void);
 mode run_titlescreen(void);
 bool titlescreen_audiocallback(void);
+bool titlescreen_fadecallback(void);
 
 #endif

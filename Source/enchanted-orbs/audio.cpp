@@ -4,6 +4,9 @@
 
 #include "audio.h"
 
+#define SINE 0
+#define NOISE 1
+
 struct voice
 {
   float f;
@@ -77,11 +80,24 @@ void play_melody(const uint8_t* melody, uint16_t len, bool (*audio_callback)(voi
         note(a, b, c);
       }
     }
-    for (int i=0; i < 64; i++) 
-      GD.voice(i, 0, 0, 0, 0);
+    clear_audio();
   }
-  for (int c = 0; c < 64; c++) 
-    GD.voice(c, 0, 0, 0, 0);
+  clear_audio();
 };
 
+void sawtooth_wave(int freq)
+{
+  uint16_t f = pgm_read_word(midi_freq + freq);
+  Serial.println(freq + '--' + f);
+  GD.voice(0, SINE, f,     100,    100);
+  GD.voice(1, SINE, 2 * f, 100/2,  100/2);
+  GD.voice(2, SINE, 3 * f, 100/3,  100/3);
+  GD.voice(3, SINE, 4 * f, 100/4,  100/4);
+}
+
+void clear_audio()
+{
+  for (int i = 0; i < 64; i++) 
+    GD.voice(i, 0, 0, 0, 0);  
+}
 
