@@ -63,3 +63,26 @@ void load_background(mode screen_mode)
   GD.copy(RAM_PAL, ram_pal, size_ram_pal);    
 }
 
+void load_sprites(mode screen_mode)
+{
+  unsigned char* ram_spr_pal;
+  unsigned char* ram_spr_img;  
+  int size_spr_ram_pal;
+  int size_spr_ram_img;
+
+  switch (screen_mode)
+  {
+    case game_screen:
+    {
+      ram_spr_pal = gamescreen_spr_pal;
+      ram_spr_img = gamescreen_spr_img;
+      size_spr_ram_pal = sizeof(gamescreen_spr_pal);
+      size_spr_ram_img = sizeof(gamescreen_spr_img);
+      break;      
+    }
+  }
+  
+  GD.copy(RAM_SPRPAL, ram_spr_pal, size_spr_ram_pal);
+  GD.copy(RAM_SPRIMG, ram_spr_img, size_spr_ram_img);
+}
+
