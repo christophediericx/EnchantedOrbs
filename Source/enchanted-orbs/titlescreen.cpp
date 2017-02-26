@@ -3,27 +3,26 @@
 #include <GD.h>
 
 #include "audio.h"
+#include "graphics.h"
 #include "nescontroller.h"
 #include "screenmode.h"
 #include "titlescreen.h"
 
+uint8_t frame_counter;
+const uint16_t offset1 = 2195;
+const uint16_t offset2 = 1719;
+
 void initialize_titlescreen(void) 
 {
-  for (byte y = 0; y < 38; y++)
-    GD.copy(RAM_PIC + y * 64, titlescreen_pic + y * 50, 50);
-  GD.copy(RAM_CHR, titlescreen_chr, sizeof(titlescreen_chr));
-  GD.copy(RAM_PAL, titlescreen_pal, sizeof(titlescreen_pal));  
+  load_background(title_screen);  
 }
 
 mode run_titlescreen(void)
 {
   play_melody(titlescreen_intro_melody, sizeof(titlescreen_intro_melody), titlescreen_audiocallback);
+  fade_to_black();
   return game_screen;
 }
-
-uint8_t frame_counter;
-const uint16_t offset1 = 2195;
-const uint16_t offset2 = 1719;
   
 void pulse_press_start(void) 
 {
