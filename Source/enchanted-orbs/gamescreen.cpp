@@ -2,23 +2,36 @@
 #include <SPI.h>
 #include <GD.h>
 
+#include "audio.h"
 #include "gamescreen.h"
 #include "graphics.h"
+#include "nescontroller.h"
 #include "screenmode.h"
 
-enum orb_type
+int hero_x = 3;
+const int hero_y = 11;
+
+enum sprite_type
 {
   green,
   red,
   blue,
   yellow,
-  transparant
+  fullwhite,
+  transparent,
+  hero
 };
 
-struct orb
+enum move_direction
+{
+  left,
+  right
+};
+
+struct sprite
 {
   int type;
-} orbs[84];
+} sprites[85];
 
 void initialize_gamescreen(void)
 {
@@ -26,7 +39,7 @@ void initialize_gamescreen(void)
   load_sprites(game_screen);
 }
 
-void draw_orbs()
+void draw_sprites()
 {
   int i;
   int row = 0;
@@ -40,9 +53,15 @@ void draw_orbs()
     x = i - (y * 7);
     posx = 49 + (x * 18);
     posy = 49 + (y * 18);
-    tp = orbs[i].type;
+    tp = sprites[i].type;
     GD.sprite(i, posx, posy, tp , 0, 0);
   }
+}
+
+void set_sprite(int x, int y, sprite_type tp)
+{
+  int pos = (y * 7) + x;
+  sprites[pos].type = tp;
 }
 
 void initialize_orbs()
@@ -50,21 +69,21 @@ void initialize_orbs()
   int row, col;
   int i = 0;
   for (i = 0; i < 84; i++)
-    orbs[i].type = transparant;
+    sprites[i].type = transparent;
 }
 
-void set_orb(int x, int y, orb_type tp)
+void initialize_hero()
 {
-  int pos = (y * 7) + x;
-  orbs[pos].type = tp;
+  set_sprite(hero_x, hero_y, hero);
 }
 
-mode run_gamescreen(void)
+void randomize_seed()
 {
-  randomSeed(analogRead(0));
-  initialize_orbs();
+  randomSeed(analogRead(0));  
+}
 
-  int num_rows = 4;
+void fill_random_rows(int num_rows)
+{
   int col, row;
   int r;
   for (row = 0; row < num_rows; row++)
@@ -72,14 +91,57 @@ mode run_gamescreen(void)
     for (col = 0; col < 7; col++)
     {
       r = random(0, 4);
-      set_orb(col, row, orb_type(r));
+      set_sprite(col, row, sprite_type(r));
+    }
+  }  
+}
+
+void move_hero(move_direction md)
+{
+  switch (md)
+  {
+    case left:
+    {
+      if (hero_x > 0)
+      {
+        set_sprite(hero_x, hero_y, transparent);
+        hero_x--;
+        set_sprite(hero_x, hero_y, hero);
+      }
+      break;
+    }
+    case right:
+    {
+      if (hero_x < 6)
+      {
+        set_sprite(hero_x, hero_y, transparent);
+        hero_x++;
+        set_sprite(hero_x, hero_y, hero);
+      }      
+      break;
     }
   }
-  
+  delay(50);
+}
+
+mode run_gamescreen(void)
+{
+  randomize_seed();
+  initialize_orbs();
+  initialize_hero();
+  fill_random_rows(4);
+
   while (true)
   {
     GD.waitvblank();
-    draw_orbs();
+
+    byte nes_state = read_nes_controller(controller1);
+    if (bitRead(nes_state, NES_LEFT_BUTTON)) move_hero(left);
+    else if (bitRead(nes_state, NES_RIGHT_BUTTON)) move_hero(right);
+    
+    draw_sprites();
+
+    
   }
   return title_screen;
 }
