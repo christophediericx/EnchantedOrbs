@@ -10,9 +10,7 @@
 
 int hero_x = 3;
 const int HERO_Y = 11;
-byte previous_controller_state;
-unsigned long ignore_controller_input_until = 0;
-const int CONTROLLER_GRACE_TIME_AFTER_INPUT = 20;
+int last_button_reacted_to;
 
 enum sprite_type
 {
@@ -124,7 +122,28 @@ void move_hero(move_direction md)
       break;
     }
   }
-  ignore_controller_input_until = millis() + CONTROLLER_GRACE_TIME_AFTER_INPUT;
+}
+
+void react_to_input()
+{
+  byte controller_state = read_nes_controller(controller1);
+  if (!bitRead(controller_state, last_button_reacted_to))
+  {
+    if (bitRead(controller_state, NES_LEFT_BUTTON)) 
+    {
+      move_hero(left);
+      last_button_reacted_to = NES_LEFT_BUTTON;
+    }
+    else if (bitRead(controller_state, NES_RIGHT_BUTTON)) 
+    {
+      move_hero(right);
+      last_button_reacted_to = NES_RIGHT_BUTTON;          
+    }
+    else if (controller_state == 0) 
+    {
+      last_button_reacted_to = 0;
+    }
+  }  
 }
 
 mode run_gamescreen(void)
@@ -138,19 +157,8 @@ mode run_gamescreen(void)
   while (true)
   {
     GD.waitvblank();
-    current_time = millis();
 
-    if (current_time > ignore_controller_input_until)
-    {
-      byte controller_state = read_nes_controller(controller1);
-      if (controller_state != previous_controller_state)
-      {
-        Serial.println(controller_state);
-        if (bitRead(controller_state, NES_LEFT_BUTTON)) move_hero(left);
-        else if (bitRead(controller_state, NES_RIGHT_BUTTON)) move_hero(right);
-        previous_controller_state = controller_state;
-      }
-    }
+    react_to_input();
     draw_sprites();
 
     
