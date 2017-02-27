@@ -20,7 +20,9 @@ enum sprite_type
   yellow,
   fullwhite,
   transparent,
-  hero
+  hero,
+  arrow_head,
+  arrow_dot
 };
 
 enum move_direction
@@ -32,7 +34,7 @@ enum move_direction
 struct sprite
 {
   int type;
-} sprites[85];
+} sprites[84];
 
 void initialize_gamescreen(void)
 {
@@ -67,8 +69,7 @@ void set_sprite(int x, int y, sprite_type tp)
 
 void initialize_orbs()
 {
-  int row, col;
-  int i = 0;
+  int i;
   for (i = 0; i < 84; i++)
     sprites[i].type = transparent;
 }
@@ -97,35 +98,88 @@ void fill_random_rows(int num_rows)
   }  
 }
 
-void move_hero(move_direction md)
+int get_clear_space_above_hero()
 {
-  switch (md)
+  int space_for_arrow = 0;
+  int y = 0;
+  for (y = ((HERO_Y - 1) * 7) + hero_x; y >= 0; y -= 7)
   {
-    case left:
+    if (sprites[y].type < 5) break;
+    space_for_arrow++;
+  }  
+  return space_for_arrow;
+}
+
+// Clear arrow pointing upwards from hero
+void clear_arrow()
+{
+  int space_for_arrow = get_clear_space_above_hero();
+  int pos = 0;
+  int i;
+  if (space_for_arrow > 0)
+  {
+    pos = ((HERO_Y - space_for_arrow) * 7) + hero_x;
+    while (space_for_arrow > 0)
     {
-      if (hero_x > 0)
-      {
-        set_sprite(hero_x, HERO_Y, transparent);
-        hero_x--;
-        set_sprite(hero_x, HERO_Y, hero);
-      }
-      break;
-    }
-    case right:
-    {
-      if (hero_x < 6)
-      {
-        set_sprite(hero_x, HERO_Y, transparent);
-        hero_x++;
-        set_sprite(hero_x, HERO_Y, hero);
-      }      
-      break;
+      sprites[pos].type = transparent;
+      pos += 7;
+      space_for_arrow--;
     }
   }
 }
 
+// Render arrow pointing upwards from hero
+void render_arrow()
+{
+  int space_for_arrow = get_clear_space_above_hero();
+  int pos = 0;
+  int i;
+  if (space_for_arrow > 0)
+  {
+    pos = ((HERO_Y - space_for_arrow) * 7) + hero_x;
+    sprites[pos].type = arrow_head;
+    if (space_for_arrow > 1)
+    {
+      for (i = 0; i < space_for_arrow - 1; i++) 
+      {
+        pos += 7;
+        sprites[pos].type = arrow_dot;  
+      }
+    }
+  }  
+}
+
+void move_hero(move_direction md)
+{
+  // Clear arrowhead pointing upwards
+  clear_arrow();
+  
+  // Clear current hero sprite
+  set_sprite(hero_x, HERO_Y, transparent);
+  
+  // Adjust position
+  switch (md)
+  {
+    case left:
+    {
+      if (hero_x > 0) hero_x--;
+      break;
+    }
+    case right:
+    {
+      if (hero_x < 6) hero_x++;
+      break;
+    }
+  }
+
+  // Set hero sprite at new position
+  set_sprite(hero_x, HERO_Y, hero);
+  render_arrow();
+}
+
 void react_to_input()
 {
+  // We want to avoid repeating input, so we store the 'last_button_reacted_to'
   byte controller_state = read_nes_controller(controller1);
   if (!bitRead(controller_state, last_button_reacted_to))
   {
@@ -152,16 +206,14 @@ mode run_gamescreen(void)
   randomize_seed();
   initialize_orbs();
   initialize_hero();
-  fill_random_rows(4);
-
+  fill_random_rows(5);
+  render_arrow();
+  
   while (true)
   {
     GD.waitvblank();
-
     react_to_input();
     draw_sprites();
-
-    
   }
   return title_screen;
 }
