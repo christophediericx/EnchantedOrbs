@@ -8,6 +8,13 @@
 #include "nescontroller.h"
 #include "screenmode.h"
 
+/* 
+ *  Sprites  0  -  84     playing field (orbs, player, arrow)
+ *  Sprites 85  -  93     characters of level indication (level 1 - level 99)
+ *  
+ */
+
+int current_level = 1;
 int hero_x = 3;
 const int HERO_Y = 11;
 int last_button_reacted_to;
@@ -200,12 +207,42 @@ void react_to_input()
   }  
 }
 
+void write_text(String text, int len, int spriteIdx, int xpos, int ypos)
+{
+  int i;
+  int c;
+  for (i = 0; i < len; i++) 
+  {
+    c = text[i];
+    // Map characters to sprite indexes
+    if (c > 64 && c < 94) c -= 56; // A - Z
+    else if (c > 47 && c < 58) c -= 11; // 0 - 9
+    else if (c == 32) continue; // SPACE
+    GD.sprite(spriteIdx + i, xpos + (i * 16), ypos, c, 0, 0);
+  }
+}
+
+void update_level_text(int level)
+{
+  String t = "LEVEL ";
+  t.concat(level);
+  int baseChars = 7;
+  if (level > 10) baseChars++;
+  write_text(t, baseChars , 85, 225, 32);  
+}
+
+void initialize_text() 
+{
+  update_level_text(current_level);
+}
+
 mode run_gamescreen(void)
 {
   unsigned long current_time;
   randomize_seed();
   initialize_orbs();
   initialize_hero();
+  initialize_text();
   fill_random_rows(5);
   render_arrow();
   
