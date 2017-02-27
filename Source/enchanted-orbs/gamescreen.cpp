@@ -9,7 +9,10 @@
 #include "screenmode.h"
 
 int hero_x = 3;
-const int hero_y = 11;
+const int HERO_Y = 11;
+byte previous_controller_state;
+unsigned long ignore_controller_input_until = 0;
+const int CONTROLLER_GRACE_TIME_AFTER_INPUT = 20;
 
 enum sprite_type
 {
@@ -74,7 +77,7 @@ void initialize_orbs()
 
 void initialize_hero()
 {
-  set_sprite(hero_x, hero_y, hero);
+  set_sprite(hero_x, HERO_Y, hero);
 }
 
 void randomize_seed()
@@ -104,9 +107,9 @@ void move_hero(move_direction md)
     {
       if (hero_x > 0)
       {
-        set_sprite(hero_x, hero_y, transparent);
+        set_sprite(hero_x, HERO_Y, transparent);
         hero_x--;
-        set_sprite(hero_x, hero_y, hero);
+        set_sprite(hero_x, HERO_Y, hero);
       }
       break;
     }
@@ -114,18 +117,19 @@ void move_hero(move_direction md)
     {
       if (hero_x < 6)
       {
-        set_sprite(hero_x, hero_y, transparent);
+        set_sprite(hero_x, HERO_Y, transparent);
         hero_x++;
-        set_sprite(hero_x, hero_y, hero);
+        set_sprite(hero_x, HERO_Y, hero);
       }      
       break;
     }
   }
-  delay(50);
+  ignore_controller_input_until = millis() + CONTROLLER_GRACE_TIME_AFTER_INPUT;
 }
 
 mode run_gamescreen(void)
 {
+  unsigned long current_time;
   randomize_seed();
   initialize_orbs();
   initialize_hero();
@@ -134,11 +138,19 @@ mode run_gamescreen(void)
   while (true)
   {
     GD.waitvblank();
+    current_time = millis();
 
-    byte nes_state = read_nes_controller(controller1);
-    if (bitRead(nes_state, NES_LEFT_BUTTON)) move_hero(left);
-    else if (bitRead(nes_state, NES_RIGHT_BUTTON)) move_hero(right);
-    
+    if (current_time > ignore_controller_input_until)
+    {
+      byte controller_state = read_nes_controller(controller1);
+      if (controller_state != previous_controller_state)
+      {
+        Serial.println(controller_state);
+        if (bitRead(controller_state, NES_LEFT_BUTTON)) move_hero(left);
+        else if (bitRead(controller_state, NES_RIGHT_BUTTON)) move_hero(right);
+        previous_controller_state = controller_state;
+      }
+    }
     draw_sprites();
 
     
