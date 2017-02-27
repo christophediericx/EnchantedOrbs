@@ -12,5 +12,5 @@ Game Screen:
 
 Balls: http://opengameart.org/content/magic-orbs
 Border: http://opengameart.org/content/golden-and-emerald-border
-Fonts: http://opengameart.org/content/bitmap-font-pack
+Font: http://opengameart.org/content/bitmap-font-pack
 
