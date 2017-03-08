@@ -88,8 +88,6 @@ void load_sprites(mode screen_mode)
 
 void clear_sprites()
 {
-  GD.fill(RAM_SPRPAL, 0, 2048);
-  GD.fill(RAM_SPRIMG, 0, 64 * 256);
   for (int i = 0; i < 512; i++)
   {
     GD.sprite(i, 500, 500, 0 , 0, 0);  
