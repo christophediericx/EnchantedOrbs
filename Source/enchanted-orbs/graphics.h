@@ -5,8 +5,10 @@
 
 void fade_to_black(bool (*graphics_callback)(void));
 void load_background(mode);
-void load_sprites(mode);
-void clear_sprites();
+void load_sprites();
+void hide_sprites();
+void write_text(String text, byte len, uint16_t spriteIdx, uint16_t xpos, uint16_t ypos);
+void render_score(uint16_t score, uint16_t x, uint16_t y, uint16_t sprite_idx);
 
 /* --- Titlescreen Resouces --- */
 

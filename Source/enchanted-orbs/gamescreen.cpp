@@ -3,21 +3,21 @@
 #include <GD.h>
 
 #include "audio.h"
+#include "common.h"
 #include "gamescreen.h"
 #include "graphics.h"
 #include "nescontroller.h"
 #include "screenmode.h"
 
 /* 
- *  Sprites  0  -  84     playing field (orbs, player, arrow)
- *  Sprites 85  -  93     characters of level indication (level 1 - level 99)
- *  
+ *  Sprites   0  -   84     playing field (orbs, player, arrow)
+ *  Sprites  85  -   93     characters of level indication ("LEVEL XXX") (1-128)
+ *  Sprites  94  -   99     characters of score text ("SCORE:")  
+ *  Sprites 100  -  104     5 digits of score ("XXXXX")
  */
 
-int current_level = 1;
-int hero_x = 3;
-const int HERO_Y = 11;
-int last_button_reacted_to;
+const byte HERO_Y = 11;
+byte hero_x, last_button_reacted_to;
 
 enum sprite_type
 {
@@ -43,10 +43,13 @@ struct sprite
   int type;
 } sprites[84];
 
-void initialize_gamescreen(void)
+void initialize_game_screen(void)
 {
+  current_level = 1;
+  current_score = 0;
+  last_button_reacted_to = 0;
+  hero_x = 3;
   load_background(game_screen);
-  load_sprites(game_screen);
 }
 
 void draw_sprites()
@@ -207,21 +210,6 @@ void react_to_input()
   }  
 }
 
-void write_text(String text, int len, int spriteIdx, int xpos, int ypos)
-{
-  int i;
-  int c;
-  for (i = 0; i < len; i++) 
-  {
-    c = text[i];
-    // Map characters to sprite indexes
-    if (c > 64 && c < 94) c -= 56; // A - Z
-    else if (c > 47 && c < 58) c -= 11; // 0 - 9
-    else if (c == 32) continue; // SPACE
-    GD.sprite(spriteIdx + i, xpos + (i * 16), ypos, c, 0, 0);
-  }
-}
-
 bool drop_one_row()
 {
   // Copy existing rows downwards
@@ -258,21 +246,29 @@ bool drop_one_row()
   return false;
 }
 
-void update_level_text(int level)
+void update_level_text(byte level)
 {
-  String t = "LEVEL ";
-  t.concat(level);
-  int baseChars = 7;
-  if (level > 10) baseChars++;
-  write_text(t, baseChars , 85, 225, 32);  
+  write_text("LEVEL", 5, 85, 240, 32);
+  byte digits = count_digits(level);
+  if (digits == 0) digits = 1;
+
+  if (digits < 3) write_text("0", 1, 90, 336, 32);
+  if (digits < 2) write_text("0", 1, 91, 352, 32);
+  write_text(String(level), digits, 93 - digits, 384 - (digits * 16), 32);  
+}
+
+void initialize_score_text()
+{
+  write_text("SCORE:", 6, 94, 288, 64);
 }
 
 void initialize_text() 
 {
   update_level_text(current_level);
+  initialize_score_text();
 }
 
-mode run_gamescreen(void)
+mode run_game_screen(void)
 {
   unsigned long current_time;
   randomize_seed();
@@ -293,12 +289,14 @@ mode run_gamescreen(void)
     if (frame_counter == 0x80)
     {
       frame_counter = 0;
+      current_score += 54;
       game_over = drop_one_row();  
-      if (game_over) return title_screen;
+      if (game_over) return game_over_screen;
     }
     
     react_to_input();
     draw_sprites();
+    render_score(current_score, 304, 96, 100);
   }
   return title_screen;
 }

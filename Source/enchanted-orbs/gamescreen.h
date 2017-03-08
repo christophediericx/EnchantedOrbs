@@ -3,7 +3,7 @@
 
 #include "screenmode.h"
 
-void initialize_gamescreen(void);
-mode run_gamescreen(void);
+void initialize_game_screen(void);
+mode run_game_screen(void);
 
 #endif

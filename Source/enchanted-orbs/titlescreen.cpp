@@ -13,18 +13,18 @@ uint8_t current_midifreq;
 const uint16_t offset1 = 2195;
 const uint16_t offset2 = 1719;
 
-void initialize_titlescreen(void) 
+void initialize_title_screen(void) 
 {
   load_background(title_screen);  
 }
 
-mode run_titlescreen(void)
+mode run_title_screen(void)
 {
   current_midifreq = 96;
-  play_melody(titlescreen_intro_melody, sizeof(titlescreen_intro_melody), titlescreen_audiocallback);
+  play_melody(titlescreen_intro_melody, sizeof(titlescreen_intro_melody), title_screen_audiocallback);
   clear_audio();
   sawtooth_wave(current_midifreq);
-  fade_to_black(titlescreen_fadecallback);
+  fade_to_black(title_screen_fadecallback);
   clear_audio();
   return game_screen;
 }
@@ -41,14 +41,14 @@ void pulse_press_start(void)
   }
 }
 
-bool titlescreen_audiocallback(void)
+bool title_screen_audiocallback(void)
 {
   pulse_press_start();
   byte nes_state = read_nes_controller(controller1);
   return (!bitRead(nes_state, NES_START_BUTTON));
 }
 
-bool titlescreen_fadecallback(void)
+bool title_screen_fadecallback(void)
 {
   current_midifreq -= 1;
   sawtooth_wave(current_midifreq);

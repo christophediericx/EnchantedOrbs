@@ -1,9 +1,9 @@
 #ifndef TITLESCREEN_H
 #define TITLESCREEN_H
 
-void initialize_titlescreen(void);
-mode run_titlescreen(void);
-bool titlescreen_audiocallback(void);
-bool titlescreen_fadecallback(void);
+void initialize_title_screen(void);
+mode run_title_screen(void);
+bool title_screen_audiocallback(void);
+bool title_screen_fadecallback(void);
 
 #endif

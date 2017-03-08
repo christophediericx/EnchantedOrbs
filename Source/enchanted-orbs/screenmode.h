@@ -4,7 +4,8 @@
 enum mode 
 {
   title_screen,
-  game_screen
+  game_screen,
+  game_over_screen
 };
 
 #endif

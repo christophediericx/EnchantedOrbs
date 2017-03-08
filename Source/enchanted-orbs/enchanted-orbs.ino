@@ -1,14 +1,19 @@
 #include <SPI.h>
 #include <GD.h>
 
+#include "common.h"
 #include "graphics.h"
 #include "nescontroller.h"
 #include "screenmode.h"
 #include "gamescreen.h"
+#include "gameoverscreen.h"
 #include "titlescreen.h"
 
 mode current_mode;
 bool is_initialized = false;
+
+byte current_level;
+uint16_t current_score;
 
 void switch_mode(mode mode)
 {
@@ -21,6 +26,7 @@ void setup(void)
   Serial.begin(9600);
   GD.begin();
   initialize_nes_controllers();
+  load_sprites();
   switch_mode(title_screen);
 }
 
@@ -34,14 +40,20 @@ void loop(void)
   {
     case title_screen:
     {
-      screen_init = &initialize_titlescreen;
-      screen_run = &run_titlescreen;
+      screen_init = &initialize_title_screen;
+      screen_run = &run_title_screen;
       break;
     }
     case game_screen:
     {
-      screen_init = &initialize_gamescreen;
-      screen_run = &run_gamescreen;
+      screen_init = &initialize_game_screen;
+      screen_run = &run_game_screen;
+      break;
+    }
+    case game_over_screen:
+    {
+      screen_init = &initialize_game_over_screen;
+      screen_run = &run_game_over_screen;
       break;
     }
   }
@@ -52,6 +64,6 @@ void loop(void)
     is_initialized = true;
   }
   new_mode = screen_run();
-  clear_sprites();
+  hide_sprites();
   switch_mode(new_mode);
 }
