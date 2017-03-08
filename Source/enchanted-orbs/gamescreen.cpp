@@ -222,6 +222,42 @@ void write_text(String text, int len, int spriteIdx, int xpos, int ypos)
   }
 }
 
+bool drop_one_row()
+{
+  // Copy existing rows downwards
+  int col, row, pos, r, next_pos;
+  byte tp;
+  bool is_game_over = false;
+  for (row = 11; row >= 0; row--)
+  {
+    for (col = 0; col < 7; col++)
+    {
+      pos = (row * 7) + col;
+      tp = sprites[pos].type;
+      next_pos = pos + 7;
+
+      // don't replace hero sprite
+      if (sprites[next_pos].type == hero) continue;
+      
+      // also, don't copy over transparent sprites
+      if (sprites[pos].type == transparent) continue;
+      
+      sprites[next_pos].type = tp;
+
+      // the game is over if an orb enters the last line
+      is_game_over = (next_pos >= (HERO_Y * 7)) && (tp < 5);
+      if (is_game_over) return true;      
+    }
+  }      
+  // Now add one random row at the top
+  for (col = 0; col < 7; col++)
+  {
+    r = random(0, 4);
+    set_sprite(col, 0, sprite_type(r));
+  }
+  return false;
+}
+
 void update_level_text(int level)
 {
   String t = "LEVEL ";
@@ -245,10 +281,22 @@ mode run_gamescreen(void)
   initialize_text();
   fill_random_rows(5);
   render_arrow();
+
+  int frame_counter = 0;
+  bool game_over = false;
   
   while (true)
   {
     GD.waitvblank();
+    frame_counter++;
+
+    if (frame_counter == 0x80)
+    {
+      frame_counter = 0;
+      game_over = drop_one_row();  
+      if (game_over) return title_screen;
+    }
+    
     react_to_input();
     draw_sprites();
   }

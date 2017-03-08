@@ -1,6 +1,7 @@
 #include <SPI.h>
 #include <GD.h>
 
+#include "graphics.h"
 #include "nescontroller.h"
 #include "screenmode.h"
 #include "gamescreen.h"
@@ -51,5 +52,6 @@ void loop(void)
     is_initialized = true;
   }
   new_mode = screen_run();
+  clear_sprites();
   switch_mode(new_mode);
 }

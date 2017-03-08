@@ -6,6 +6,7 @@
 void fade_to_black(bool (*graphics_callback)(void));
 void load_background(mode);
 void load_sprites(mode);
+void clear_sprites();
 
 /* --- Titlescreen Resouces --- */
 
