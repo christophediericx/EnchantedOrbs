@@ -263,7 +263,7 @@ void grab_orbs()
   {
     // ... check how many we have ...
     orbs_to_grab = 0;
-    for (pos = pos_orb; pos >= 0; pos -=7)
+    for (pos = pos_orb; pos <= 0; pos -=7)
     {
       if (sprites_playfield[pos].type != tp_above_hero) break;
       orbs_to_grab++;
