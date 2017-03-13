@@ -7,7 +7,7 @@
 /* 
  *  Sprites   0  -    9     characters for "GAME OVER"
  *  Sprites  10  -   24     characters for "YOUR SCORE:"
- *  Sprites  25  -   29     characters for score ("XXXXX")
+ *  Sprites  25  -   30     characters for score ("XXXXXX")
  */
 
 
@@ -15,8 +15,8 @@ void render_game_over_text()
 {
   String game_over = "GAME OVER";
   write_text(game_over, 9, 0, 128, 96);
-  write_text("YOUR SCORE:", 11, 10, 64, 128);
-  render_score(current_score, 256, 128, 25);
+  write_text("YOUR SCORE:", 11, 10, 56, 128);
+  render_score(current_score, 248, 128, 25);
 }
 
 void initialize_game_over_screen(void) 

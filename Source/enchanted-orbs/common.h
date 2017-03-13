@@ -2,7 +2,8 @@
 #define COMMON_H
 
 extern byte current_level;
-extern uint16_t current_score;
+extern uint32_t current_score;
+extern uint16_t frame_counter;
 
 byte count_digits(int num);
 

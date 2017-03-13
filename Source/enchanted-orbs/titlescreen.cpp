@@ -3,12 +3,12 @@
 #include <GD.h>
 
 #include "audio.h"
+#include "common.h"
 #include "graphics.h"
 #include "nescontroller.h"
 #include "screenmode.h"
 #include "titlescreen.h"
 
-uint8_t frame_counter;
 uint8_t current_midifreq;
 const uint16_t offset1 = 2195;
 const uint16_t offset2 = 1719;
@@ -16,6 +16,7 @@ const uint16_t offset2 = 1719;
 void initialize_title_screen(void) 
 {
   load_background(title_screen);  
+  frame_counter = 0;
 }
 
 mode run_title_screen(void)

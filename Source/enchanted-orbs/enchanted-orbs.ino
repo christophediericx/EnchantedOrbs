@@ -12,8 +12,10 @@
 mode current_mode;
 bool is_initialized = false;
 
+/* Globals */
 byte current_level;
-uint16_t current_score;
+uint32_t current_score;
+uint16_t frame_counter;
 
 void switch_mode(mode mode)
 {

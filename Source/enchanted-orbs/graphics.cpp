@@ -71,8 +71,8 @@ void load_background(mode screen_mode)
 
 void load_sprites()
 {
-  GD.copy(RAM_SPRPAL, gamescreen_spr_pal, sizeof(gamescreen_spr_pal));
-  GD.copy(RAM_SPRIMG, gamescreen_spr_img, sizeof(gamescreen_spr_img));
+  GD.copy(RAM_SPRPAL, spr_pal, sizeof(spr_pal));
+  GD.copy(RAM_SPRIMG, spr_img, sizeof(spr_img));
 }
 
 void hide_sprites()
@@ -95,14 +95,15 @@ void write_text(String text, byte len, uint16_t spriteIdx, uint16_t xpos, uint16
   }
 }
 
-void render_score(uint16_t score, uint16_t x, uint16_t y, uint16_t sprite_idx)
+void render_score(uint32_t score, uint16_t x, uint16_t y, uint16_t sprite_idx)
 {
   byte num_digits = count_digits(score);
   if (num_digits == 0) num_digits = 1;
-  if (num_digits < 5) write_text("0", 1, sprite_idx, x, y);
-  if (num_digits < 4) write_text("0", 1, sprite_idx + 1, x + 16, y);
-  if (num_digits < 3) write_text("0", 1, sprite_idx + 2, x + 32, y);
-  if (num_digits < 2) write_text("0", 1, sprite_idx + 3, x + 48, y);
-  if (num_digits < 1) write_text("0", 1, sprite_idx + 4, x + 64, y);
-  write_text(String(score), num_digits, sprite_idx + 5 - num_digits, x + 80 - (num_digits * 16), y);
+  if (num_digits < 6) write_text("0", 1, sprite_idx, x, y);
+  if (num_digits < 5) write_text("0", 1, sprite_idx + 1, x + 16, y);
+  if (num_digits < 4) write_text("0", 1, sprite_idx + 2, x + 32, y);
+  if (num_digits < 3) write_text("0", 1, sprite_idx + 3, x + 48, y);
+  if (num_digits < 2) write_text("0", 1, sprite_idx + 4, x + 64, y);
+  if (num_digits < 1) write_text("0", 1, sprite_idx + 5, x + 80, y);
+  write_text(String(score), num_digits, sprite_idx + 6 - num_digits, x + 96 - (num_digits * 16), y);
 }
