@@ -212,28 +212,8 @@ void move_hero(move_direction md)
   render_arrow();
 }
 
-void grab_orb (int pos, byte orbs_to_grab)
+void shift_orb_into_gatherarea(sprite_type tp)
 {
-  sprite_type tp = sprites_playfield[pos].type;
-
-  // animate orb moving down towards hero...
-  sprite_type prev_tp = transparent;
-  
-  while (pos < 70)
-  {
-    sprites_playfield[pos].type = prev_tp;
-    pos += 7;
-    prev_tp = sprites_playfield[pos].type;
-    sprites_playfield[pos].type = tp;
-    draw_sprites();
-    GD.waitvblank();
-    frame_counter++; 
-  }
-
-  // restore last sprite...
-  sprites_playfield[pos].type = prev_tp;
-
-  // and shift in the orb to the gather area.
   sprites_gatherarea[116].type = sprites_gatherarea[115].type;
   sprites_gatherarea[115].type = sprites_gatherarea[114].type;
   sprites_gatherarea[114].type = sprites_gatherarea[113].type;
@@ -241,11 +221,41 @@ void grab_orb (int pos, byte orbs_to_grab)
   sprites_gatherarea[112].type = sprites_gatherarea[111].type;
   sprites_gatherarea[111].type = sprites_gatherarea[110].type;
   sprites_gatherarea[110].type = tp;
+}
 
+void grab_orb (int pos, byte orbs_to_grab)
+{
+  sprite_type tp = sprites_playfield[pos].type;
+
+  // animate orb moving down towards hero...
+
+  pos = pos - (orbs_to_grab - 1) * 7;
+
+  byte last_pos = 0;
+
+  while (pos < 70)
+  {
+    sprites_playfield[pos].type = transparent;
+    last_pos = pos + (orbs_to_grab * 7);
+    if (last_pos < 70)
+    {
+      sprites_playfield[last_pos].type = tp;
+    }
+    else
+    {
+      shift_orb_into_gatherarea(tp);
+    }
+    draw_sprites();
+    GD.waitvblank();
+    frame_counter++;
+    pos += 7;
+  }
+  // restore last sprite...
+  sprites_playfield[pos].type = transparent;
+  render_arrow();
   draw_sprites();
   GD.waitvblank();
-  frame_counter++;   
-  Serial.println(pos);
+  frame_counter++;
 }
 
 void grab_orbs()
@@ -255,15 +265,15 @@ void grab_orbs()
   byte pos_orb = ((HERO_Y - spaces_above_hero - 1) * 7) + hero_x;
   sprite_type tp_above_hero = sprites_playfield[pos_orb].type;
 
-  byte pos;
   byte orbs_to_grab;
+  byte pos;
   
   // If what we have is compatible...
   if (already_present == transparent_gatherarea || tp_above_hero == already_present)
   {
     // ... check how many we have ...
     orbs_to_grab = 0;
-    for (pos = pos_orb; pos <= 0; pos -=7)
+    for (pos = pos_orb; pos >= 0; pos -=7)
     {
       if (sprites_playfield[pos].type != tp_above_hero) break;
       orbs_to_grab++;
