@@ -366,10 +366,7 @@ void collapse_field(byte accumulator[])
 {
   byte pos, otherpos, tp_counter;
   byte collapsed_col[11];
-  sprite_type prev_type, cur_type;
-  byte cols_with_combinations[7];
-  for (byte i = 0; i < 7; i++)
-    cols_with_combinations[i] = 0;
+  sprite_type tp;
     
   for (byte col = 0; col < 7; col++)
   {
@@ -386,53 +383,15 @@ void collapse_field(byte accumulator[])
     for (byte i = 0; i < 11; i++)
     {
       pos = (i * 7) + col;   
-      cur_type = collapsed_col[i];
-      sprites_playfield[pos].type = cur_type;   
-      if (cur_type < 5)
-      {
-        if (prev_type != cur_type)
-        {
-          prev_type = cur_type;
-          tp_counter = 0;
-        }
-        else
-        {
-          tp_counter++;
-          if (tp_counter == 3)
-            cols_with_combinations[i] = 1;
-        }
-      }
-    }
-  }
-  for (byte col = 0; col < 7; col++)
-  {
-    if (cols_with_combinations[col] != 1) continue;
-    for (byte i = 0; i < 11; i++)
-    {
-      pos = (i * 7) + col;   
-      cur_type = sprites_playfield[i].type;
-      if (cur_type < 5)
-      {
-        if (prev_type != cur_type)
-        {
-          prev_type = cur_type;
-          tp_counter = 0;
-        }
-        else
-        {
-          tp_counter++;
-          if (tp_counter == 3)
-          {
-            accumulator[pos] = 1;
-            check_field(accumulator, col, i, cur_type);
-          }
-        }
-      }
+      tp = sprites_playfield[pos].type;
+      sprites_playfield[pos].type = collapsed_col[i];   
+      if (tp == transparent && collapsed_col[i] != transparent)
+        accumulator[pos] = 1;      
     }
   }
 }
 
-void clear_and_score(byte accum[], int sz)
+void clear_and_score(byte accum[], int sz, int chain)
 {
   for (int i = 0; i < sz; i++)
     sprites_playfield[accum[i]].type = fullwhite;
@@ -461,19 +420,63 @@ void clear_and_score(byte accum[], int sz)
   byte accumulator[77];
   for (byte i = 0; i < 77; i++)
     accumulator[i] = 0;
-    
+  
   collapse_field(accumulator);
+  
+  redraw();
+  redraw();
+  
+  byte x, y;
+  sprite_type tp;
+  for (byte i = 0; i < 77; i++)
+  {
+    if (accumulator[i] == 1)
+    {
+      y = i / 7;
+      x = i - (y * 7);
+      tp = sprites_playfield[i].type;
+
+      // If we have 3 horizontal, mark the chain.
+      if ((i >= 14 && sprites_playfield[i-7].type == tp && sprites_playfield[i-14].type == tp)
+        || (i >= 7 && sprites_playfield[i-7].type == tp && sprites_playfield[i+7].type == tp)
+        || (sprites_playfield[i+7].type == tp && sprites_playfield[i+14].type == tp))
+      {
+        check_field(accumulator, x, y, sprites_playfield[i].type);
+      }
+      else
+      {
+        accumulator[i] = 2;
+      }
+    }
+  }
+
+  byte sz_chain = 0;
+  for (byte i = 0; i < 77; i++)
+    if (accumulator[i] == 1) 
+      sz_chain++;
+  
+  if (sz_chain >= 3)
+  {
+    byte cleared_orbs[sz_chain];
+    byte counter = 0;
+    for (int i = 0; i < 77; i++)
+      if (accumulator[i] == 1)
+        cleared_orbs[counter++] = i; 
+
+    clear_and_score(cleared_orbs, sz_chain, chain + 1);
+  }
 
   render_arrow();
   redraw();
 
+  /*
   for (byte i = 0; i < 77; i++)
   {
     if (accumulator[i] != 0)
     {
       Serial.println(i);
     }
-  }
+  } */
 }
 
 void inspect_playfield()
@@ -503,7 +506,7 @@ void inspect_playfield()
   if (sz >= 3 && pos >= 14 && sprites_playfield[pos-7].type == tp 
     && sprites_playfield[pos-14].type == tp)
   {
-    clear_and_score(cleared_orbs, sz);
+    clear_and_score(cleared_orbs, sz, 1);
   }
 }
 
@@ -665,7 +668,7 @@ mode run_game_screen(void)
   {
     redraw();
     
-    if (frame_counter > 300)
+    if (frame_counter > 700)
     {
       frame_counter = 0;
       game_over = drop_one_row();  
