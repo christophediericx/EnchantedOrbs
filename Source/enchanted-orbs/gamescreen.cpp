@@ -362,6 +362,76 @@ void check_field(byte accum[], byte x, byte y, sprite_type tp)
   }
 }
 
+void collapse_field(byte accumulator[])
+{
+  byte pos, otherpos, tp_counter;
+  byte collapsed_col[11];
+  sprite_type prev_type, cur_type;
+  byte cols_with_combinations[7];
+  for (byte i = 0; i < 7; i++)
+    cols_with_combinations[i] = 0;
+    
+  for (byte col = 0; col < 7; col++)
+  {
+    for (byte i = 0; i < 11; i++) 
+      collapsed_col[i] = transparent;
+      
+    byte elements_in_col = 0;
+    for (byte row = 0; row < 11; row++)
+    {
+      pos = (row * 7) + col;
+      if (sprites_playfield[pos].type < 5)
+        collapsed_col[elements_in_col++] = sprites_playfield[pos].type;
+    }
+    for (byte i = 0; i < 11; i++)
+    {
+      pos = (i * 7) + col;   
+      cur_type = collapsed_col[i];
+      sprites_playfield[pos].type = cur_type;   
+      if (cur_type < 5)
+      {
+        if (prev_type != cur_type)
+        {
+          prev_type = cur_type;
+          tp_counter = 0;
+        }
+        else
+        {
+          tp_counter++;
+          if (tp_counter == 3)
+            cols_with_combinations[i] = 1;
+        }
+      }
+    }
+  }
+  for (byte col = 0; col < 7; col++)
+  {
+    if (cols_with_combinations[col] != 1) continue;
+    for (byte i = 0; i < 11; i++)
+    {
+      pos = (i * 7) + col;   
+      cur_type = sprites_playfield[i].type;
+      if (cur_type < 5)
+      {
+        if (prev_type != cur_type)
+        {
+          prev_type = cur_type;
+          tp_counter = 0;
+        }
+        else
+        {
+          tp_counter++;
+          if (tp_counter == 3)
+          {
+            accumulator[pos] = 1;
+            check_field(accumulator, col, i, cur_type);
+          }
+        }
+      }
+    }
+  }
+}
+
 void clear_and_score(byte accum[], int sz)
 {
   for (int i = 0; i < sz; i++)
@@ -378,10 +448,32 @@ void clear_and_score(byte accum[], int sz)
   // TODO: play sound
 
   // Replace full white tiles with transparent
-  for (int i = 0; i < 77; i++)
+  for (byte i = 0; i < 77; i++)
     if (sprites_playfield[i].type == fullwhite)
       sprites_playfield[i].type = transparent;
-  
+
+  redraw();
+  redraw();
+  redraw();
+  redraw();
+
+  // Check for tiles which need to drop now
+  byte accumulator[77];
+  for (byte i = 0; i < 77; i++)
+    accumulator[i] = 0;
+    
+  collapse_field(accumulator);
+
+  render_arrow();
+  redraw();
+
+  for (byte i = 0; i < 77; i++)
+  {
+    if (accumulator[i] != 0)
+    {
+      Serial.println(i);
+    }
+  }
 }
 
 void inspect_playfield()
@@ -407,8 +499,9 @@ void inspect_playfield()
     if (accumulator[i] == 1)
       cleared_orbs[counter++] = i; 
 
-  // If we have cleared at least 3 orbs (and 3 on a straight line up from here)...
-  if (sz >= 3 && pos >= 14 && sprites_playfield[pos-7].type == tp && sprites_playfield[pos-14].type == tp)
+  // If we have cleared at least 3 orbs (and 3 on a straight line up)...
+  if (sz >= 3 && pos >= 14 && sprites_playfield[pos-7].type == tp 
+    && sprites_playfield[pos-14].type == tp)
   {
     clear_and_score(cleared_orbs, sz);
   }
@@ -429,6 +522,12 @@ void throw_orbs()
   if (orbs_in_gather_area > space_above_hero) 
   {
     // TODO: play sound, or adjust animation
+    return;
+  }
+
+  if (orbs_in_gather_area == 0)
+  {
+    // TODO: play sound?
     return;
   }
   
@@ -499,7 +598,7 @@ bool drop_one_row()
   int col, row, pos, r, next_pos;
   byte tp;
   bool is_game_over = false;
-  for (row = 11; row >= 0; row--)
+  for (row = 10; row >= 0; row--)
   {
     for (col = 0; col < 7; col++)
     {
@@ -520,6 +619,7 @@ bool drop_one_row()
       if (is_game_over) return true;      
     }
   }      
+  
   // Now add one random row at the top
   for (col = 0; col < 7; col++)
   {
@@ -565,7 +665,7 @@ mode run_game_screen(void)
   {
     redraw();
     
-    if (frame_counter > 400)
+    if (frame_counter > 300)
     {
       frame_counter = 0;
       game_over = drop_one_row();  
