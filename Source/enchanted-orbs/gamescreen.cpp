@@ -61,6 +61,8 @@ void initialize_game_screen(void)
   load_background(game_screen);
 }
 
+void redraw();
+
 void draw_sprites()
 {
   byte i;
@@ -245,17 +247,11 @@ void grab_orb (int pos, byte orbs_to_grab)
     {
       shift_orb_into_gatherarea(tp);
     }
-    draw_sprites();
-    GD.waitvblank();
-    frame_counter++;
+    redraw();
     pos += 7;
   }
   // restore last sprite...
   sprites_playfield[pos].type = transparent;
-  render_arrow();
-  draw_sprites();
-  GD.waitvblank();
-  frame_counter++;
 }
 
 void grab_orbs()
@@ -266,7 +262,7 @@ void grab_orbs()
   sprite_type tp_above_hero = sprites_playfield[pos_orb].type;
 
   byte orbs_to_grab;
-  byte pos;
+  int pos;
   
   // If what we have is compatible...
   if (already_present == transparent_gatherarea || tp_above_hero == already_present)
@@ -289,11 +285,65 @@ void grab_orbs()
     {
       grab_orb(pos_orb, orbs_to_grab);
     }
-    else
-    {
-      // TODO: play sound
-    }
+    render_arrow();
   }
+  else
+  {
+    // TODO: play sound
+  }
+}
+
+void redraw()
+{
+  draw_sprites();
+  GD.waitvblank();
+  frame_counter++;
+}
+
+void throw_orbs()
+{
+  byte orbs_in_gather_area = 7;
+  for (byte i = 0; i < 7; i++)
+    if (sprites_gatherarea[SPRITE_OFFSET_GATHER_AREA+i].type == transparent_gatherarea)
+      orbs_in_gather_area--;
+
+  byte num_orbs = orbs_in_gather_area;
+  byte space_above_hero = get_clear_space_above_hero();
+  sprite_type tp = sprites_gatherarea[SPRITE_OFFSET_GATHER_AREA].type;
+  byte pos = ((HERO_Y - 1) * 7) + hero_x;
+
+  if (orbs_in_gather_area > space_above_hero) 
+  {
+    // TODO: play sound, or adjust animation
+    return;
+  }
+  
+  // Animate moving out of gather_area...
+  while (orbs_in_gather_area > 0)
+  {
+    orbs_in_gather_area--;
+    sprites_playfield[pos].type = tp;
+    sprites_gatherarea[SPRITE_OFFSET_GATHER_AREA+(orbs_in_gather_area)].type = transparent_gatherarea;
+    redraw();
+    pos -= 7;
+  }
+
+  // ... and upwards!
+  byte positions_to_shift = space_above_hero - num_orbs;
+  while (positions_to_shift-- > 0)
+  {
+    sprites_playfield[pos].type = tp;
+    sprites_playfield[pos + (num_orbs * 7)].type = arrow_dot;
+    redraw();
+    pos -= 7;
+  }
+
+  // Restore arrow
+  render_arrow();
+  redraw();
+
+  // Check if we scored points!
+  
 }
 
 void react_to_input()
@@ -316,6 +366,11 @@ void react_to_input()
     {
       grab_orbs();
       last_button_reacted_to = NES_A_BUTTON;
+    }
+    else if (bitRead(controller_state, NES_B_BUTTON))
+    {
+      throw_orbs();
+      last_button_reacted_to = NES_B_BUTTON;
     }
     else if (controller_state == 0) 
     {
