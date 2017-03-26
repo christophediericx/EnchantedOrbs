@@ -296,8 +296,122 @@ void grab_orbs()
 void redraw()
 {
   draw_sprites();
+  render_score(current_score, 288, 96, 100);
   GD.waitvblank();
   frame_counter++;
+}
+
+void check_field(byte accum[], byte x, byte y, sprite_type tp)
+{
+  byte pos;
+  if (x > 0)
+  {
+    // Consider orb to the left
+    pos = (y * 7) + x - 1;
+    if (sprites_playfield[pos].type == tp && accum[pos] == 0)
+    {
+      accum[pos] = 1;
+      check_field(accum, x - 1, y, tp);    
+    }
+    else
+    {
+      if (accum[pos] == 0) accum[pos] = 2;
+    }
+  }
+  if (x < 6)
+  {
+    // Consider orb to the right
+    pos = (y * 7) + x + 1;
+    if (sprites_playfield[pos].type == tp && accum[pos] == 0)
+    {
+      accum[pos] = 1;
+      check_field(accum, x + 1, y, tp);
+    }
+    else
+    {
+      if (accum[pos] == 0) accum[pos] = 2;
+    }
+  }
+  if (y > 0)
+  {
+    // Consider orb to the top
+    pos = ((y - 1) * 7) + x;
+    if (sprites_playfield[pos].type == tp && accum[pos] == 0)
+    {
+      accum[pos] = 1;
+      check_field(accum, x, y - 1, tp);
+    }
+    else
+    {
+      if (accum[pos] == 0) accum[pos] = 2;
+    }
+  }
+  if (y < 9)
+  {
+    // Consider orb to the bottom
+    pos = ((y + 1) * 7) + x;
+    if (sprites_playfield[pos].type == tp && accum[pos] == 0)
+    {
+      accum[pos] = 1;
+      check_field(accum, x, y + 1, tp);
+    }
+    else
+    {
+      if (accum[pos] == 0) accum[pos] = 2;
+    }
+  }
+}
+
+void clear_and_score(byte accum[], int sz)
+{
+  for (int i = 0; i < sz; i++)
+    sprites_playfield[accum[i]].type = fullwhite;
+    
+  orbs_cleared += sz;
+  current_score += (orbs_cleared * current_level);
+  
+  redraw();
+  redraw();
+  redraw();
+  redraw();
+  
+  // TODO: play sound
+
+  // Replace full white tiles with transparent
+  for (int i = 0; i < 77; i++)
+    if (sprites_playfield[i].type == fullwhite)
+      sprites_playfield[i].type = transparent;
+  
+}
+
+void inspect_playfield()
+{
+  byte spaces_above_hero = get_clear_space_above_hero();
+  int y = (HERO_Y - spaces_above_hero - 1);
+  byte pos = (y * 7) + hero_x;
+  sprite_type tp = sprites_playfield[pos].type;
+  byte accumulator[77];
+  for (byte i = 0; i < 77; i++)
+    accumulator[i] = 0;
+
+  accumulator[(y * 7) + hero_x] = 1;
+  check_field(accumulator, hero_x, y, tp);
+  byte sz = 0;
+  for (int i = 0; i < 77; i++)
+    if (accumulator[i] == 1) 
+      sz++;
+  
+  byte cleared_orbs[sz];
+  byte counter = 0;
+  for (int i = 0; i < 77; i++)
+    if (accumulator[i] == 1)
+      cleared_orbs[counter++] = i; 
+
+  // If we have cleared at least 3 orbs (and 3 on a straight line up from here)...
+  if (sz >= 3 && pos >= 14 && sprites_playfield[pos-7].type == tp && sprites_playfield[pos-14].type == tp)
+  {
+    clear_and_score(cleared_orbs, sz);
+  }
 }
 
 void throw_orbs()
@@ -343,7 +457,7 @@ void throw_orbs()
   redraw();
 
   // Check if we scored points!
-  
+  inspect_playfield(); 
 }
 
 void react_to_input()
@@ -449,14 +563,11 @@ mode run_game_screen(void)
   
   while (true)
   {
-    GD.waitvblank();
-    frame_counter++;
-
-    if (frame_counter == 3000)
+    redraw();
+    
+    if (frame_counter == 400)
     {
       frame_counter = 0;
-      orbs_cleared += 12;
-      current_score += 110;
       game_over = drop_one_row();  
       if (game_over) return game_over_screen;
     }
@@ -472,10 +583,6 @@ mode run_game_screen(void)
       update_level(current_level = new_level);
       orbs_cleared = 0;
     }
-
-    render_score(current_score, 288, 96, 100);
-    
-    draw_sprites();
   }
   return title_screen;
 }
