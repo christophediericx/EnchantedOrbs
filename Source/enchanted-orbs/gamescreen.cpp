@@ -565,7 +565,7 @@ mode run_game_screen(void)
   {
     redraw();
     
-    if (frame_counter == 400)
+    if (frame_counter > 400)
     {
       frame_counter = 0;
       game_over = drop_one_row();  
