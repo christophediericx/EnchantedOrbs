@@ -8,10 +8,10 @@ Please refer to [this blog article](http://www.diericx.net/post/enchanted-orbs-a
 
 ## Components ##
 
-* A [Gameduino 1](http://excamera.com/sphinx/gameduino/) shield
-* An Arduino Mega 2560
-* A classic NES controller
-* A breadboard and some wires
+* A [Gameduino 1](http://excamera.com/sphinx/gameduino/) shield.
+* An Arduino Mega 2560.
+* A classic NES controller.
+* A breadboard and some wires.
 
 ## Wiring ##
 
