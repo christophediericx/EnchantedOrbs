@@ -2,9 +2,9 @@
 
 A fast Arduino / Gameduino based Magical Drop clone, played with an NES controller!
 
-![Enchanted Orbs](https://github.com/christophediericx/EnchantedOrbs/blob/master/Images/EnchantedOrbs.png)
+Please refer to [this blog article](http://www.diericx.net/post/enchanted-orbs-arduino-magical-drop-clone/) for more detail.
 
-Please refer to [this blog article](http://www.diericx.net/post/enchanted-orbs-arduino-magical-drop-clone/) for full details.
+![Enchanted Orbs](https://github.com/christophediericx/EnchantedOrbs/blob/master/Images/EnchantedOrbs.png)
 
 ## Components ##
 
