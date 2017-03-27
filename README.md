@@ -1,5 +1,4 @@
-# Enchanted Orbs
-A quick Arduino / Gameduino -based puzzler (paying tribute to the classic Magical Drop series).
+# Enchanted Orbs: an Arduino based Magical Drop clone (エンチャントされた球)
 
 ## Components ##
 
