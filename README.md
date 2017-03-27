@@ -32,8 +32,6 @@ In the layout above, the NES Controller is attached through breadboard pins A10-
 | A14            | +5V              |                    |
 | A15            | GND              |                    |
 
-## Gameplay Video ##
-
 ## Font and Art Credits ##
 
 I used the following fonts:
