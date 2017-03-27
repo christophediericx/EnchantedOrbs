@@ -13,9 +13,11 @@ mode current_mode;
 bool is_initialized = false;
 
 /* Globals */
+
 byte current_level;
 uint32_t current_score;
 uint16_t frame_counter;
+uint16_t audio_counter;
 
 void switch_mode(mode mode)
 {
@@ -25,7 +27,6 @@ void switch_mode(mode mode)
 
 void setup(void) 
 {
-  Serial.begin(9600);
   GD.begin();
   initialize_nes_controllers();
   load_sprites();

@@ -18,7 +18,6 @@
  */
 
 const byte SPRITE_OFFSET_GATHER_AREA = 110;
-
 const byte HERO_Y = 11;
 const byte ORBS_CLEARED_FOR_LEVEL_UP = 25;
 byte hero_x, last_button_reacted_to;
@@ -62,6 +61,7 @@ void initialize_game_screen(void)
 }
 
 void redraw();
+void play_sound(int);
 
 void draw_sprites()
 {
@@ -72,7 +72,7 @@ void draw_sprites()
   uint16_t posx, posy;
   byte tp;
 
-  // playfield
+  // Play field
   for (i = 0; i < 84; i++) 
   {
     if (i % 7 == 0 && i > 1) y++;
@@ -83,7 +83,7 @@ void draw_sprites()
     GD.sprite(i, posx, posy, tp , 0, 0);
   }
 
-  // gather area
+  // Gather area
   for (i = 0; i < 7; i++) 
   {
     posx = 49 + (i * 18);
@@ -147,7 +147,6 @@ byte get_clear_space_above_hero()
   return space_for_arrow;
 }
 
-// Clear arrow pointing upwards from hero
 void clear_arrow()
 {
   byte space_for_arrow = get_clear_space_above_hero();
@@ -165,7 +164,6 @@ void clear_arrow()
   }
 }
 
-// Render arrow pointing upwards from hero
 void render_arrow()
 {
   byte space_for_arrow = get_clear_space_above_hero();
@@ -229,7 +227,7 @@ void grab_orb (int pos, byte orbs_to_grab)
 {
   sprite_type tp = sprites_playfield[pos].type;
 
-  // animate orb moving down towards hero...
+  // Animate orb moving down towards hero...
 
   pos = pos - (orbs_to_grab - 1) * 7;
 
@@ -250,7 +248,7 @@ void grab_orb (int pos, byte orbs_to_grab)
     redraw();
     pos += 7;
   }
-  // restore last sprite...
+  // Restore last sprite...
   sprites_playfield[pos].type = transparent;
 }
 
@@ -275,7 +273,7 @@ void grab_orbs()
       orbs_to_grab++;
     }
     
-    // ... and check it fits in our gathering area
+    // ... and check it fits in our gathering area.
     byte spaces_in_gather_area = 0;
     for (byte i = 0; i < 7; i++)
       if (sprites_gatherarea[SPRITE_OFFSET_GATHER_AREA+i].type == transparent_gatherarea) 
@@ -289,8 +287,45 @@ void grab_orbs()
   }
   else
   {
-    // TODO: play sound
+    play_sound(68);
   }
+}
+
+bool drop_one_row()
+{
+  // Copy existing rows downwards
+  int col, row, pos, r, next_pos;
+  byte tp;
+  bool is_game_over = false;
+  for (row = 10; row >= 0; row--)
+  {
+    for (col = 0; col < 7; col++)
+    {
+      pos = (row * 7) + col;
+      tp = sprites_playfield[pos].type;
+      next_pos = pos + 7;
+
+      // Don't replace hero sprite
+      if (sprites_playfield[next_pos].type == hero) continue;
+      
+      // Also, don't copy over transparent sprites
+      if (sprites_playfield[pos].type == transparent) continue;
+      
+      sprites_playfield[next_pos].type = tp;
+
+      // The game is over if any orb would be on the last line
+      is_game_over = (next_pos >= (HERO_Y * 7)) && (tp < 5);
+      if (is_game_over) return true;      
+    }
+  }      
+  
+  // Now add one random row at the top
+  for (col = 0; col < 7; col++)
+  {
+    r = random(0, 4);
+    set_sprite_playfield(col, 0, sprite_type(r));
+  }
+  return false;
 }
 
 void redraw()
@@ -299,9 +334,16 @@ void redraw()
   render_score(current_score, 288, 96, 100);
   GD.waitvblank();
   frame_counter++;
+  audio_counter++;
+
+  if (audio_counter > 48)
+  {
+    audio_counter = 0;
+    clear_audio();
+  }  
 }
 
-void check_field(byte accum[], byte x, byte y, sprite_type tp)
+void mark_neighbouring_fields(byte accum[], byte x, byte y, sprite_type tp)
 {
   byte pos;
   if (x > 0)
@@ -311,7 +353,7 @@ void check_field(byte accum[], byte x, byte y, sprite_type tp)
     if (sprites_playfield[pos].type == tp && accum[pos] == 0)
     {
       accum[pos] = 1;
-      check_field(accum, x - 1, y, tp);    
+      mark_neighbouring_fields(accum, x - 1, y, tp);    
     }
     else
     {
@@ -325,7 +367,7 @@ void check_field(byte accum[], byte x, byte y, sprite_type tp)
     if (sprites_playfield[pos].type == tp && accum[pos] == 0)
     {
       accum[pos] = 1;
-      check_field(accum, x + 1, y, tp);
+      mark_neighbouring_fields(accum, x + 1, y, tp);
     }
     else
     {
@@ -339,7 +381,7 @@ void check_field(byte accum[], byte x, byte y, sprite_type tp)
     if (sprites_playfield[pos].type == tp && accum[pos] == 0)
     {
       accum[pos] = 1;
-      check_field(accum, x, y - 1, tp);
+      mark_neighbouring_fields(accum, x, y - 1, tp);
     }
     else
     {
@@ -353,7 +395,7 @@ void check_field(byte accum[], byte x, byte y, sprite_type tp)
     if (sprites_playfield[pos].type == tp && accum[pos] == 0)
     {
       accum[pos] = 1;
-      check_field(accum, x, y + 1, tp);
+      mark_neighbouring_fields(accum, x, y + 1, tp);
     }
     else
     {
@@ -362,7 +404,7 @@ void check_field(byte accum[], byte x, byte y, sprite_type tp)
   }
 }
 
-void collapse_field(byte accumulator[])
+void collapse_playfield(byte accumulator[])
 {
   byte pos, otherpos, tp_counter;
   byte collapsed_col[11];
@@ -395,17 +437,19 @@ void clear_and_score(byte accum[], int sz, int chain)
 {
   for (int i = 0; i < sz; i++)
     sprites_playfield[accum[i]].type = fullwhite;
-    
-  orbs_cleared += sz;
-  current_score += (orbs_cleared * current_level);
-  
-  redraw();
-  redraw();
-  redraw();
-  redraw();
-  
-  // TODO: play sound
 
+  byte offset = (12 * chain);
+  play_sound(80 + offset);
+  orbs_cleared += sz;
+  current_score += (orbs_cleared * current_level * chain);
+  
+  redraw();
+  redraw();
+  play_sound(78 + offset);
+  redraw();
+  redraw();
+  play_sound(76 + offset);
+  
   // Replace full white tiles with transparent
   for (byte i = 0; i < 77; i++)
     if (sprites_playfield[i].type == fullwhite)
@@ -413,18 +457,24 @@ void clear_and_score(byte accum[], int sz, int chain)
 
   redraw();
   redraw();
+  play_sound(74 + offset);
   redraw();
   redraw();
+  play_sound(72 + offset);
 
   // Check for tiles which need to drop now
   byte accumulator[77];
   for (byte i = 0; i < 77; i++)
     accumulator[i] = 0;
   
-  collapse_field(accumulator);
+  collapse_playfield(accumulator);
   
   redraw();
   redraw();
+  play_sound(70 + offset);
+  redraw();
+  redraw();
+  play_sound(68 + offset);
   
   byte x, y;
   sprite_type tp;
@@ -441,7 +491,7 @@ void clear_and_score(byte accum[], int sz, int chain)
         || (i >= 7 && sprites_playfield[i-7].type == tp && sprites_playfield[i+7].type == tp)
         || (sprites_playfield[i+7].type == tp && sprites_playfield[i+14].type == tp))
       {
-        check_field(accumulator, x, y, sprites_playfield[i].type);
+        mark_neighbouring_fields(accumulator, x, y, sprites_playfield[i].type);
       }
       else
       {
@@ -463,20 +513,13 @@ void clear_and_score(byte accum[], int sz, int chain)
       if (accumulator[i] == 1)
         cleared_orbs[counter++] = i; 
 
-    clear_and_score(cleared_orbs, sz_chain, chain + 1);
+    clear_and_score(cleared_orbs, sz_chain, 2 * chain);
   }
 
   render_arrow();
+  play_sound(66 + offset);
   redraw();
-
-  /*
-  for (byte i = 0; i < 77; i++)
-  {
-    if (accumulator[i] != 0)
-    {
-      Serial.println(i);
-    }
-  } */
+  redraw();
 }
 
 void inspect_playfield()
@@ -490,7 +533,7 @@ void inspect_playfield()
     accumulator[i] = 0;
 
   accumulator[(y * 7) + hero_x] = 1;
-  check_field(accumulator, hero_x, y, tp);
+  mark_neighbouring_fields(accumulator, hero_x, y, tp);
   byte sz = 0;
   for (int i = 0; i < 77; i++)
     if (accumulator[i] == 1) 
@@ -524,13 +567,13 @@ void throw_orbs()
 
   if (orbs_in_gather_area > space_above_hero) 
   {
-    // TODO: play sound, or adjust animation
+    play_sound(68);
     return;
   }
 
   if (orbs_in_gather_area == 0)
   {
-    // TODO: play sound?
+    play_sound(68);
     return;
   }
   
@@ -562,6 +605,12 @@ void throw_orbs()
   inspect_playfield(); 
 }
 
+void play_sound(int freq)
+{
+  audio_counter = 0;
+  sawtooth_wave(freq);
+}
+
 void react_to_input()
 {
   // We want to avoid repeating input, so we store the 'last_button_reacted_to'
@@ -580,11 +629,13 @@ void react_to_input()
     }
     else if (bitRead(controller_state, NES_A_BUTTON))
     {
+      play_sound(70);      
       grab_orbs();
       last_button_reacted_to = NES_A_BUTTON;
     }
     else if (bitRead(controller_state, NES_B_BUTTON))
     {
+      play_sound(80);        
       throw_orbs();
       last_button_reacted_to = NES_B_BUTTON;
     }
@@ -592,44 +643,8 @@ void react_to_input()
     {
       last_button_reacted_to = 255;
     }
+    clear_audio();
   }  
-}
-
-bool drop_one_row()
-{
-  // Copy existing rows downwards
-  int col, row, pos, r, next_pos;
-  byte tp;
-  bool is_game_over = false;
-  for (row = 10; row >= 0; row--)
-  {
-    for (col = 0; col < 7; col++)
-    {
-      pos = (row * 7) + col;
-      tp = sprites_playfield[pos].type;
-      next_pos = pos + 7;
-
-      // don't replace hero sprite
-      if (sprites_playfield[next_pos].type == hero) continue;
-      
-      // also, don't copy over transparent sprites
-      if (sprites_playfield[pos].type == transparent) continue;
-      
-      sprites_playfield[next_pos].type = tp;
-
-      // the game is over if an orb enters the last line
-      is_game_over = (next_pos >= (HERO_Y * 7)) && (tp < 5);
-      if (is_game_over) return true;      
-    }
-  }      
-  
-  // Now add one random row at the top
-  for (col = 0; col < 7; col++)
-  {
-    r = random(0, 4);
-    set_sprite_playfield(col, 0, sprite_type(r));
-  }
-  return false;
 }
 
 void update_level(byte level)
@@ -657,24 +672,25 @@ mode run_game_screen(void)
   initialize_hero();
   initialize_score();
   update_level(current_level);
-  fill_random_rows(3);
+  fill_random_rows(4);
   render_arrow();
 
   orbs_cleared = 0;
   frame_counter = 0;
+  audio_counter = 0;
   bool game_over = false;
   
   while (true)
   {
     redraw();
-    
-    if (frame_counter > 700)
+
+    if (frame_counter > (255 - current_level))
     {
       frame_counter = 0;
-      game_over = drop_one_row();  
-      if (game_over) return game_over_screen;
-    }
-    
+      bool game_over = drop_one_row();  
+      if (game_over) return game_over_screen;   
+    }  
+
     react_to_input();
 
     // Level up if required

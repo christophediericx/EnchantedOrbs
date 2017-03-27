@@ -4,6 +4,7 @@
 extern byte current_level;
 extern uint32_t current_score;
 extern uint16_t frame_counter;
+extern uint16_t audio_counter;
 
 byte count_digits(int num);
 
