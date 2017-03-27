@@ -15,11 +15,11 @@ Please refer to [this blog article](http://www.diericx.net/post/enchanted-orbs-a
 
 ## Wiring ##
 
-![Breadboard Setup](http://www.diericx.net/images/enchantedorbs2.png)
+![Breadboard Setup](https://github.com/christophediericx/EnchantedOrbs/blob/master/Images/wiring.png)
 
-Wiring is straightforward. For reference purposes, here is a [fritzing diagram](http://www.diericx.net/downloads/enchantedorbs.fzz):
+Wiring is straightforward. For reference purposes, here is a [fritzing diagram](https://github.com/christophediericx/EnchantedOrbs/blob/master/Downloads/enchantedorbs.fzz):
 
-![Wiring](http://www.diericx.net/images/enchantedorbs3.png)
+![Wiring](https://github.com/christophediericx/EnchantedOrbs/blob/master/Images/wiring-diagram.png)
 
 In the layout above, the NES Controller is attached through breadboard pins A10-A15:
 
