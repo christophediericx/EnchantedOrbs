@@ -8,16 +8,16 @@ Please refer to [this blog article](http://www.diericx.net/post/enchanted-orbs-a
 
 ## Components ##
 
-* A [Gameduino 1](http://excamera.com/sphinx/gameduino/) shield.
-* An Arduino Mega 2560.
-* A classic NES controller.
-* A breadboard and some wires.
+* A [Gameduino 1](http://excamera.com/sphinx/gameduino/) shield
+* An Arduino Mega 2560
+* A classic NES controller
+* A breadboard and some wires
 
 ## Wiring ##
 
 ![Breadboard Setup](https://github.com/christophediericx/EnchantedOrbs/blob/master/Images/wiring.png)
 
-Wiring is straightforward. For reference purposes, here is a [fritzing diagram](https://github.com/christophediericx/EnchantedOrbs/blob/master/Downloads/enchantedorbs.fzz):
+For reference purposes, here is a [fritzing diagram](https://github.com/christophediericx/EnchantedOrbs/blob/master/Downloads/enchantedorbs.fzz):
 
 ![Wiring](https://github.com/christophediericx/EnchantedOrbs/blob/master/Images/wiring-diagram.png)
 
